@@ -6,6 +6,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const app = express();
+const winston = require('winston');
+const expressWinston = require('express-winston');
 
 // mapping from fd's ship model names to coriolis'
 const SHIP_FD_NAME_TO_CORIOLIS_NAME = {
@@ -4976,11 +4978,32 @@ function outfitURL(shipId, code, buildName) {
     }
   }
 
+var router = express.Router()
+
+app.use(expressWinston.logger({
+  transports: [
+    new winston.transports.Console()
+  ],
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.json()
+  ),
+  meta: true,
+  msg: "HTTP {{req.method}} {{req.url}}",
+  expressFormat: true,
+  colorize: true,
+  ignoreRoute: function (req, res) { return false; }
+}))
+
+app.use(router);
+
 app.post("/convert", jsonParser, (req, res) => {
-    var ship = shipFromLoadoutJSON(req.body)
-    var convertedShip = toDetailedBuild("MyShip", ship, ship.toString())
-    res.type("json")
-    res.send(convertedShip)
+
+  var ship = shipFromLoadoutJSON(req.body)
+  var response = toDetailedBuild("MyShip", ship, ship.toString())
+
+  res.type("json")
+  res.send(response)
 })
 
 app.listen(7777, () => {
