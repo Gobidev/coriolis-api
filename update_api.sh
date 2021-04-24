@@ -9,7 +9,7 @@ if [ "$check_screen" != "" ]; then
 fi
 
 # update api
-./build.sh
+. build.sh
 
 # start api
 screen -mdS coriolis-api node index.js
