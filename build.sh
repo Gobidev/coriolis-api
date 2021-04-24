@@ -19,5 +19,8 @@ cd "coriolis-data" || exit 1
 npm i && node generate_distribution.js
 cd ..
 
+# Install node modules of coriolis-api
+npm i
+
 # build api
 python3 generate_api.py
