@@ -1,0 +1,26 @@
+{
+  "name": "coriolis-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gobidev/coriolis-api.git"
+  },
+  "author": "Gobidev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gobidev/coriolis-api/issues"
+  },
+  "homepage": "https://github.com/Gobidev/coriolis-api#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "lodash": "^4.17.21",
+    "lz-string": "^1.4.4",
+    "zlib": "^1.0.5"
+  }
+}
