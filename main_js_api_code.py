@@ -20,8 +20,7 @@ app.post("/convert", jsonParser, (req, res) => {
   let response = toDetailedBuild(shipName, ship, ship.toString())
 
   // Get client information for log
-  let clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-  let logInformation = {"clientIP": clientIP, "headers:": req.headers, "shipName": shipName}
+  let logInformation = {"headers:": req.headers, "shipName": shipName}
   console.log(JSON.stringify(logInformation))
 
   res.type("json")
