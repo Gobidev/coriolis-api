@@ -7,35 +7,22 @@ const zlib = require('zlib');
 const express = require("express");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
-const app = express();
-const winston = require('winston');
-const expressWinston = require('express-winston');"""
+const app = express();"""
 
 main_api_js = """
-var router = express.Router()
-
-app.use(expressWinston.logger({
-  transports: [
-    new winston.transports.Console()
-  ],
-  format: winston.format.combine(
-    winston.format.colorize(),
-    winston.format.json()
-  ),
-  meta: true,
-  msg: "HTTP {{req.method}} {{req.url}}",
-  expressFormat: true,
-  colorize: true,
-  ignoreRoute: function (req, res) { return false; }
-}))
-
-app.use(router);
-
 app.post("/convert", jsonParser, (req, res) => {
 
-  var ship = shipFromLoadoutJSON(req.body)
+  var shipName = req.body.ShipName
+  
+  let ship = shipFromLoadoutJSON(req.body)
   ship.updateStats()
-  var response = toDetailedBuild("MyShip", ship, ship.toString())
+  
+  let response = toDetailedBuild(shipName, ship, ship.toString())
+
+  // Get client information for log
+  let clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+  let logInformation = {"clientIP": clientIP, "headers:": req.headers, "shipName": shipName}
+  console.log(JSON.stringify(logInformation))
 
   res.type("json")
   res.send(response)
@@ -43,4 +30,5 @@ app.post("/convert", jsonParser, (req, res) => {
 
 app.listen(7777, () => {
     console.log("API started successfully")
-})"""
+})
+"""
