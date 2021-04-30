@@ -3,11 +3,11 @@ import hashlib
 import time
 
 main_files = [
-    "./coriolis/src/app/utils/JournalUtils.js",
     "./coriolis/src/app/utils/CompanionApiUtils.js",
     "./coriolis/src/app/utils/BlueprintFunctions.js",
     "./coriolis/src/app/utils/UtilityFunctions.js",
     "./coriolis/src/app/utils/UrlGenerators.js",
+    "./coriolis/src/app/utils/JournalUtils.js",
 
     "./coriolis/src/app/shipyard/Ship.js",
     "./coriolis/src/app/shipyard/Module.js",
