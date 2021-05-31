@@ -1,5 +1,7 @@
 node_modules
 coriolis
 coriolis-data
+api.log
+conversions.json
 .idea
 _*
