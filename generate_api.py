@@ -108,6 +108,6 @@ if __name__ == '__main__':
     Build Hash: {api_string_sha256}\n**/\n
     """
 
-    with open("index.js", "w") as api_file:
+    with open("coriolis-api.js", "w") as api_file:
         api_file.write(info_top + api_file_string)
     print("API built successfully!")
