@@ -12,4 +12,4 @@ fi
 . build.sh
 
 # start api
-screen -L -Logfile api.log -mdS coriolis-api node index.js
+screen -L -Logfile api.log -mdS coriolis-api node coriolis-api.js
