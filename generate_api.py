@@ -3,12 +3,12 @@ import hashlib
 import time
 
 main_files = [
+    "./coriolis/src/app/shipyard/Constants.js",
     "./coriolis/src/app/utils/CompanionApiUtils.js",
     "./coriolis/src/app/utils/BlueprintFunctions.js",
     "./coriolis/src/app/utils/UtilityFunctions.js",
     "./coriolis/src/app/utils/UrlGenerators.js",
     "./coriolis/src/app/utils/JournalUtils.js",
-
     "./coriolis/src/app/shipyard/Ship.js",
     "./coriolis/src/app/shipyard/Module.js",
     "./coriolis/src/app/shipyard/Calculations.js",
@@ -16,28 +16,21 @@ main_files = [
     "./coriolis/src/app/shipyard/ModuleSet.js",
     "./coriolis/src/app/shipyard/StatsFormatting.js",
     "./coriolis/src/app/shipyard/Serializer.js",
-    "./coriolis/src/app/shipyard/Constants.js",
 ]
 
 replacement_dict = {
     "Module.": "",
     "Calc.": "",
     "ModuleUtils.": "",
-
     "export ": "",
     "default ": "",
-
     "Modifications.": "Dist.Modifications.",
-
     "Ships[": "Dist.Ships[",
     "Modules.": "Dist.Modules.",
     "Modules,": "Dist.Modules,",
-
     "json.Dist.Modules.": "json.Modules.",
-
     "_.": "Lodash.",
     "chain(": "Lodash.chain(",
-
     "this.jumpRange(": "jumpRange(",
 }
 
@@ -65,7 +58,9 @@ def parse_file(filename: str) -> str:
                 del file_lines[index]
 
     # Insert filename
-    file_lines.insert(0, f"\n\n//------------------------------------------------\n//{filename}")
+    file_lines.insert(
+        0, f"\n\n//------------------------------------------------\n//{filename}"
+    )
 
     # Recombine lines
     parsed_file = "\n".join(file_lines)
@@ -74,10 +69,11 @@ def parse_file(filename: str) -> str:
     file_methods = parsed_file.split("/**")
     indicator_strings = ["<span>", "div>", "</tr>"]
 
-    for index, method in enumerate(file_methods):
-        for indicator in indicator_strings:
-            if indicator in method:
-                del file_methods[index]
+    file_methods = [
+        method
+        for method in file_methods
+        if not any(indicator in method for indicator in indicator_strings)
+    ]
 
     parsed_file = "/**".join(file_methods)
 
@@ -95,9 +91,9 @@ def generate_api_file() -> str:
     return output_string
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     api_file_string = generate_api_file()
-    
+
     api_string_sha256 = hashlib.sha256(api_file_string.encode("utf-8")).hexdigest()
     timestamp = time.strftime("%Y-%m-%d %T")
 
