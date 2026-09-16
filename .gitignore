@@ -2,6 +2,7 @@ node_modules
 coriolis
 coriolis-data
 coriolis-api.js
+coriolis-convert.js
 api.log
 conversions.json
 .idea
