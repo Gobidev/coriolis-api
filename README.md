@@ -11,6 +11,14 @@ Coriolis performs all of its conversion operations client-side, there was no
 easy way to interface with its conversion functions from Python. This project
 therefore exposes those functions through a small NodeJS API.
 
+> **Also bundled into EDNeutronAssistant.** A copy of this project is vendored
+> into EDNeutronAssistant at
+> [`tools/coriolis-api`](https://github.com/Gobidev/EDNeutronAssistant/tree/main/tools/coriolis-api).
+> It is used to build the `coriolis-convert.js` stdin/stdout CLI that ships
+> inside the app, so loadout conversion works offline. This repository remains
+> the home of the hosted API and the Docker image; keep the two in sync when
+> changing the conversion logic.
+
 The API is built by importing the real Coriolis ES modules and bundling them
 together with [esbuild](https://esbuild.github.io/). The Coriolis and
 coriolis-data repositories are cloned automatically during the build, so new
@@ -81,14 +89,29 @@ Per default the API listens on port `7777` and processes requests on
 `http://localhost:7777/convert`. Requests must be `POST` requests with a JSON
 body that matches an Elite: Dangerous loadout event.
 
+## CLI
+
+`npm run build` also produces `coriolis-convert.js`, a standalone CLI that
+converts a single loadout event read from stdin into a Coriolis build written to
+stdout. It performs exactly the same conversion as the HTTP API but without a
+server, and is used by EDNeutronAssistant to convert loadouts offline.
+
+```sh
+node coriolis-convert.js < loadout.json > build.json
+```
+
+It exits with code `0` on success and `1` on invalid input or conversion
+failure, writing the error message to stderr.
+
 ## Testing
 
 ```sh
 npm test
 ```
 
-The test suite builds the bundle and runs black-box HTTP tests against it,
-including error handling and concurrent-request behaviour.
+The test suite builds the bundles and runs black-box tests against both the
+HTTP API and the CLI, including error handling and concurrent-request
+behaviour.
 
 ## Docker
 
@@ -104,8 +127,9 @@ as the unprivileged `node` user, and the conversion log is written to `/data`
 
 ## Development notes
 
-- `coriolis-api.js` is a generated artifact and is not checked into git. Edit
-  `src/index.js` (API and request handling) or `build.mjs` (bundling) instead.
+- `coriolis-api.js` and `coriolis-convert.js` are generated artifacts and are
+  not checked into git. Edit `src/index.js` (HTTP API), `src/cli.js` (CLI),
+  `src/convert.js` (shared conversion) or `build.mjs` (bundling) instead.
 - Coriolis ships JSX inside `.js` files. `build.mjs` loads those files with the
   JSX loader and aliases `react` to a stub, because the API never renders the
   UI components.
