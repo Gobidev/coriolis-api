@@ -1,29 +1,113 @@
 # coriolis-api
-An API that converts [Elite: Dangerous](https://www.elitedangerous.com/) Loadout event entries to the ship json format
-used by [Coriolis](https://coriolis.io/).
+
+An API that converts [Elite: Dangerous](https://www.elitedangerous.com/) loadout
+events to the ship JSON format used by [Coriolis](https://coriolis.io/).
 
 ## Scope of this project
-The original purpose of this project is its implementation in my project [EDNeutronAssistant](https://github.com/Gobidev/EDNeutronAssistant).
-As I have planned to integrate the [exact spansh plotter](https://www.spansh.co.uk/exact-plotter) API into this program,
-I searched for a way to convert the loadout event entries of the Elite: Dangerous
-log to the ship json format used by coriolis, as this is required for the spansh route calculation and has use in other parts of the
-program. Because all the conversion operations of Coriolis are done client-side, there was no easy way for me to interface
-with the conversion functions of Coriolis with my python program. Therefore, I decided to create a NodeJS based API that
-utilizes the existing JavaScript functions of Coriolis to allow for an easy implementation in python. To avoid having to
-constantly update the API when new ships or modules are added to the game, I made a python script (generate_api.py) that
-automatically generates the NodeJS API file from the [Coriolis GitHub](https://github.com/EDCD/coriolis) repository.
+
+The original purpose of this project is its implementation in
+[EDNeutronAssistant](https://github.com/Gobidev/EDNeutronAssistant). Because
+Coriolis performs all of its conversion operations client-side, there was no
+easy way to interface with its conversion functions from Python. This project
+therefore exposes those functions through a small NodeJS API.
+
+The API is built by importing the real Coriolis ES modules and bundling them
+together with [esbuild](https://esbuild.github.io/). The Coriolis and
+coriolis-data repositories are cloned automatically during the build, so new
+ships and modules are picked up without changing this repository.
 
 ## Using the API
-My own instance of this API is running at ``https://coriolis-api.gobidev.de``.
-To convert a loadout event to a Coriolis JSON, send a POST request to ``https://coriolis-api.gobidev.de/convert`` with
-the loadout event as a JSON in the request body. The converted Coriolis build will be sent back as a JSON.
 
-## Building the API
-If you are on Linux, or have the option to run bash on Windows (i.e. by using git bash), building the API is as easy as
-cloning this repository, installing the required node modules with ``npm i`` and then executing build.sh. Note that NodeJS
-as well as python3.9 or higher (might also work with earlier versions) have to be installed for this to work.
+A public instance runs at `https://coriolis-api.gobidev.de`.
 
-## Running the API
-After building the API it can be run by executing index.js with ``node index.js``. Per default, it listens on port 7777/tcp
-and requests are processed on http://localhost:7777/convert. Requests must be POST requests with a JSON body that matches
-an Elite: Dangerous loadout event. 
+Convert a loadout event to a Coriolis build by sending a `POST` request to
+`/convert` with the loadout event as the JSON request body:
+
+```sh
+curl -X POST https://coriolis-api.gobidev.de/convert \
+  -H 'Content-Type: application/json' \
+  --data @loadout.json
+```
+
+The converted Coriolis build is returned as JSON. Invalid requests return a
+`4xx` status with a JSON body of the form `{"error": "..."}`.
+
+### Endpoints
+
+| Method | Path       | Description                              |
+| ------ | ---------- | ---------------------------------------- |
+| `POST` | `/convert` | Convert a loadout event to a Coriolis build |
+| `GET`  | `/health`  | Liveness probe, returns `{"status":"ok"}` |
+
+### Configuration
+
+The API is configured through environment variables:
+
+| Variable           | Default              | Description                                        |
+| ------------------ | -------------------- | -------------------------------------------------- |
+| `PORT`             | `7777`               | Port to listen on                                  |
+| `HOST`             | `0.0.0.0`            | Interface to bind to                               |
+| `CORS_ORIGIN`      | `*`                  | Value of the `Access-Control-Allow-Origin` header  |
+| `BODY_LIMIT`       | `1mb`                | Maximum accepted request body size                 |
+| `CONVERSIONS_FILE` | `./conversions.json` | File the conversion URLs are appended to           |
+| `CONVERSIONS_MAX`  | `5000`               | Maximum number of entries kept in the log          |
+
+## Building
+
+Requirements: NodeJS 18+ and `git`.
+
+```sh
+npm ci        # install build dependencies
+./build.sh    # clone/update coriolis + coriolis-data and bundle the API
+```
+
+`build.sh` clones the [EDCD/coriolis](https://github.com/EDCD/coriolis) and
+[EDCD/coriolis-data](https://github.com/EDCD/coriolis-data) repositories,
+generates the coriolis-data distribution and then runs `npm run build`, which
+bundles `src/index.js` into the generated `coriolis-api.js`.
+
+If the upstream repositories are already present, only `npm run build` is
+needed to rebuild the API.
+
+## Running
+
+```sh
+npm start
+# or
+node coriolis-api.js
+```
+
+Per default the API listens on port `7777` and processes requests on
+`http://localhost:7777/convert`. Requests must be `POST` requests with a JSON
+body that matches an Elite: Dangerous loadout event.
+
+## Testing
+
+```sh
+npm test
+```
+
+The test suite builds the bundle and runs black-box HTTP tests against it,
+including error handling and concurrent-request behaviour.
+
+## Docker
+
+```sh
+docker build -t coriolis-api .
+docker run -p 7777:7777 -v coriolis-data:/data coriolis-api
+```
+
+The image is a multi-stage build: the bundle is created in a build stage and
+the runtime stage only contains NodeJS and `coriolis-api.js`. The container runs
+as the unprivileged `node` user, and the conversion log is written to `/data`
+(mount a volume to persist it).
+
+## Development notes
+
+- `coriolis-api.js` is a generated artifact and is not checked into git. Edit
+  `src/index.js` (API and request handling) or `build.mjs` (bundling) instead.
+- Coriolis ships JSX inside `.js` files. `build.mjs` loads those files with the
+  JSX loader and aliases `react` to a stub, because the API never renders the
+  UI components.
+- `build.mjs` also patches a known upstream bug in `Calculations.js`
+  (`this.jumpRange(...)` inside the standalone `totalJumpRange` function).

@@ -1,7 +1,12 @@
 node_modules
 coriolis
 coriolis-data
+coriolis-api.js
 api.log
 conversions.json
 .idea
 _*
+
+# Python tooling leftovers (the generator was replaced by build.mjs)
+__pycache__/
+.ruff_cache/

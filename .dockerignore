@@ -1,0 +1,20 @@
+.git
+.github
+.gitignore
+.dockerignore
+
+# Dependencies and cloned upstream repositories are (re)created by build.sh
+node_modules
+coriolis
+coriolis-data
+
+# Generated artifact and runtime files
+coriolis-api.js
+conversions.json
+api.log
+
+# Tooling caches and local files
+__pycache__
+.ruff_cache
+.idea
+*.log
